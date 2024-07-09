@@ -14,7 +14,7 @@ const upload = multer({ dest: 'uploads/' });
 dotenv.config();
 const encodeURL = bodyParser.urlencoded({ extended: false });
 
-app.use(express.static(path.join(__dirname, 'NMIMS_PLACEMENT_PORTAL')));
+app.use(express.static(path.join(__dirname, '../public')));
 
 cloudinary.config({
     cloud_name: 'dfl7exztb',
@@ -27,17 +27,17 @@ const background_image_url = 'https://res.cloudinary.com/dfl7exztb/image/upload/
 const nmims_logo_url = 'https://res.cloudinary.com/dfl7exztb/image/upload/v1716112179/cgbbdp6k9fv6kfneshgf.jpg';
 
 app.get('/register.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'register.html'));
+    res.sendFile(path.join(__dirname, '../public/register.html'));
 });
 app.get('/studentdashboard', (req, res) => {
-    res.sendFile(path.join(__dirname, 'studentdashboard.html'));
+    res.sendFile(path.join(__dirname, '../public/studentdashboard.html'));
 });
 
 app.get('/facultydashboard', (req, res) => {
-    res.sendFile(path.join(__dirname, 'facultydashboard.html'));
+    res.sendFile(path.join(__dirname, '../public/facultydashboard.html'));
 });
 app.get('/result.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'result.html'));
+    res.sendFile(path.join(__dirname, '../public/result.html'));
 });
 app.use(session({
     secret: process.env.SECRET_SESSION,
@@ -48,11 +48,13 @@ app.use(session({
 
 app.use(cookieParser());
 
+
 const con = mysql.createConnection({
-    host: "localhost",
-    user: "root",
-    password: "root",
-    database: "student_db"
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    port: process.env.DB_PORT
 });
 
 con.connect(function(err) {
@@ -63,7 +65,7 @@ con.connect(function(err) {
     console.log('Connected to database as id ' + con.threadId);
 });
 app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/login.html');
+    res.sendFile(__dirname + '../public/login.html');
 });
 
 app.post('/register.html', encodeURL, async (req, res) => {
@@ -77,10 +79,10 @@ app.post('/register.html', encodeURL, async (req, res) => {
         }
 
         if (result.length > 0) {
-            res.sendFile(__dirname + '/fail_reg.html');
+            res.sendFile(__dirname + '../public/fail_reg.html');
         } else {
             if (password.length < 8) {
-                res.sendFile(__dirname + '/fail_reg.html');
+                res.sendFile(__dirname + 'public/fail_reg.html');
                 return;
             }
 
@@ -126,7 +128,7 @@ app.post('/register.html', encodeURL, async (req, res) => {
 });
 
 app.get("/login", (req, res) => {
-    res.sendFile(__dirname + "/login.html");
+    res.sendFile(__dirname + "../public/login.html");
 });
 
 app.post("/dashboard", encodeURL, (req, res) => {
@@ -135,7 +137,7 @@ app.post("/dashboard", encodeURL, (req, res) => {
     con.query(`SELECT * FROM users WHERE username = '${username}'`, async function(err, result) {
         if (err) {
             console.error('Error querying data: ' + err.stack);
-            res.sendFile(__dirname + '/fail_login.html');
+            res.sendFile(__dirname + '../public/fail_login.html');
             return;
         }
         if (result.length > 0) {
@@ -148,13 +150,13 @@ app.post("/dashboard", encodeURL, (req, res) => {
                 } else if (user.userType === 'faculty') {
                     res.redirect('/facultydashboard');
                 } else {
-                    res.sendFile(__dirname + '/fail_login.html');
+                    res.sendFile(__dirname + '../public/fail_login.html');
                 }
             } else {
-                res.sendFile(__dirname + '/fail_login.html');
+                res.sendFile(__dirname + '../public/fail_login.html');
             }
         } else {
-            res.sendFile(__dirname + '/fail_login.html');
+            res.sendFile(__dirname + '../public/fail_login.html');
         }
     });
 });
@@ -267,7 +269,7 @@ app.post('/uploadNews', upload.single('image'), (req, res) => {
         
         // Optionally, if an image was uploaded, move it to a permanent location
         if (image) {
-            const imagePath = `images/${image.filename}`; // Assuming filename is stored in the database
+            const imagePath = path.join(__dirname, '../public/images', image.filename); // Assuming filename is stored in the database
             fs.renameSync(image.path, imagePath); // Move the file
         }
 
