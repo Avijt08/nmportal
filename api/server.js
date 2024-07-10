@@ -2,8 +2,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
-const mysql = require('mysql');
-const bcrypt = require('bcrypt');
+const mysql = require('mysql2');
+const bcrypt = require('bcryptjs');
 const path = require('path');
 const app = express();
 const dotenv = require('dotenv');
@@ -17,15 +17,13 @@ const encodeURL = bodyParser.urlencoded({ extended: false });
 app.use(express.static(path.join(__dirname, '../public')));
 
 cloudinary.config({
-    cloud_name: 'dfl7exztb',
-    api_key: '229896612154869',
-    api_secret: 'CfuGkcYcP0h0WjXMnY3Z7IcrYJM'
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-const background_image_url = 'https://res.cloudinary.com/dfl7exztb/image/upload/v1716112094/seaw333c7yrbdfhbbv3t.jpg';
-
-const nmims_logo_url = 'https://res.cloudinary.com/dfl7exztb/image/upload/v1716112179/cgbbdp6k9fv6kfneshgf.jpg';
-
+const background_image_url = process.env.BACKGROUND_IMAGE_URL;
+const nmims_logo_url = process.env.NMIMS_LOGO_URL;
 app.get('/register.html', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/register.html'));
 });
@@ -66,6 +64,10 @@ con.connect(function(err) {
 });
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '../public/login.html');
+});
+
+app.get('/login', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/login.html'));
 });
 
 app.post('/register.html', encodeURL, async (req, res) => {
@@ -293,3 +295,4 @@ app.get('/latestNews', (req, res) => {
 app.listen(3000, () => {
     console.log("Server running on port 3000");
 });
+module.exports = (req, res) => app(req, res);
